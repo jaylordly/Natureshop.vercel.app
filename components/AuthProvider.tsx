@@ -8,6 +8,7 @@ const KEY = 'tna.auth.v1';
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
+  profileSynced: boolean; // 프로필(역할 포함)이 DB에서 동기화됐는지
   loginWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   signupWithEmail: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
   loginWithKakao: (redirectPath?: string) => Promise<{ error: string | null }>;
@@ -45,6 +46,7 @@ async function fetchProfile(userId: string): Promise<{ name: string; role: Role 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileSynced, setProfileSynced] = useState(false);
 
   // 1) 초기 세션 복구 + Supabase 인증 상태 구독
   useEffect(() => {
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const applySession = (session: { user: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null) => {
       if (!session?.user) {
         setUser(null);
+        setProfileSynced(true);
         return;
       }
       // 1) 즉시: 세션에서 알 수 있는 최소 정보로 user 설정 (UI 즉시 반응)
@@ -76,11 +79,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session.user.email?.split('@')[0] ||
         '회원';
       setUser({ id: session.user.id, name: fallbackName, role: 'user' });
+      setProfileSynced(false);
 
       // 2) 백그라운드: 진짜 프로필(role 포함) fetch 후 덮어쓰기
       void fetchProfile(session.user.id).then((profile) => {
-        if (!mounted || !profile) return;
-        setUser({ id: session.user.id, name: profile.name, role: profile.role });
+        if (!mounted) return;
+        if (profile) {
+          setUser({ id: session.user.id, name: profile.name, role: profile.role });
+        }
+        setProfileSynced(true);
       });
     };
 
@@ -184,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithEmail, signupWithEmail, loginWithKakao, upgradeToStudent, updateName, updatePassword, refreshProfile, loginDemo, logout }}>
+    <AuthContext.Provider value={{ user, loading, profileSynced, loginWithEmail, signupWithEmail, loginWithKakao, upgradeToStudent, updateName, updatePassword, refreshProfile, loginDemo, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,18 +1,26 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading, profileSynced } = useAuth();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setReady(true);
   }, []);
 
-  if (!ready) return null;
+  // 초기 로딩 또는 프로필 미동기화 상태 — 로딩 표시
+  // (세션이 있는데 프로필이 아직 안 왔으면 잠깐 기다림)
+  if (!ready || loading || (user && !profileSynced)) {
+    return (
+      <div className="min-h-screen bg-beige flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-gold animate-spin" />
+      </div>
+    );
+  }
 
   if (!user || user.role !== 'admin') {
     return (
