@@ -1,10 +1,21 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 export default function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige to-gold-soft/40" />
+      <div className="absolute inset-0">
+        <Image
+          src="https://images.unsplash.com/photo-1607779097040-26e80aa4576b?w=1920&q=85&auto=format&fit=crop"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-30"
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-cream/95 via-beige/90 to-gold-soft/50" />
       <div className="container-narrow relative py-20 sm:py-32 lg:py-44 text-center">
         <div className="flex items-center justify-center gap-3 mb-6">
           <span className="h-px w-8 sm:w-10 bg-gold" />

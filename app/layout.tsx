@@ -4,6 +4,7 @@ import { CartProvider } from '@/components/CartProvider';
 import { AuthProvider } from '@/components/AuthProvider';
 import { ToastProvider } from '@/components/Toast';
 import AdminLiveNotifier from '@/components/AdminLiveNotifier';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 const notoSans = Noto_Sans_KR({
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ToastProvider>
           </CartProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
