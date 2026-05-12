@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="220" viewBox="0 0 600 220">
+  <title>Defined Arch</title>
+  <!-- 또렷한 아치형 — 진한 단일 형태 -->
+  <g transform="translate(60,110)">
+    <path d="M0,18 Q60,-22 130,-30 L200,-8 Q150,-2 100,2 Q50,8 5,18 Z"
+          fill="#2B1D17" opacity="0.92"/>
+    <path d="M5,14 Q60,-18 125,-26 L195,-6 Q145,-1 95,3 Q50,7 8,14 Z"
+          fill="#3D2A22" opacity="0.55"/>
+  </g>
+  <g transform="translate(540,110) scale(-1,1)">
+    <path d="M0,18 Q60,-22 130,-30 L200,-8 Q150,-2 100,2 Q50,8 5,18 Z"
+          fill="#2B1D17" opacity="0.92"/>
+    <path d="M5,14 Q60,-18 125,-26 L195,-6 Q145,-1 95,3 Q50,7 8,14 Z"
+          fill="#3D2A22" opacity="0.55"/>
+  </g>
+</svg>

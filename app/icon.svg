@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#1F1A16"/>
+  <path d="M14,38 Q22,24 32,22 Q42,24 50,38"
+        stroke="#B5894A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <text x="32" y="55" text-anchor="middle"
+        font-family="Georgia, serif" font-style="italic" font-size="14"
+        fill="#D6B07A">na</text>
+</svg>

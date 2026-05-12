@@ -1,0 +1,75 @@
+import type { Metadata } from 'next';
+import Hero from '@/components/Hero';
+import BestNewTabs from '@/components/BestNewTabs';
+import PromoBanner from '@/components/PromoBanner';
+import ReviewSection from '@/components/ReviewSection';
+import SnsSection from '@/components/SnsSection';
+import AdminQuickPanel from '@/components/AdminQuickPanel';
+import { getAllProductsFromDb } from '@/lib/products';
+import Link from 'next/link';
+import { SectionDivider } from '@/components/SectionDivider';
+
+export const dynamic = 'force-dynamic';
+
+// 홈은 루트 metadata의 default title("The Nature Academy — 프로페셔널 반영구 제품")을 그대로 사용
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
+
+const CATEGORIES = [
+  { name: '머신', desc: '디지털 / 로터리' },
+  { name: '엠보', desc: '펜 / 블레이드' },
+  { name: '색소', desc: '눈썹 / 입술' },
+  { name: '위생', desc: '니들 / 멸균용품' },
+  { name: '케어', desc: '시술 후 케어' },
+];
+
+export default async function HomePage() {
+  const all = await getAllProductsFromDb();
+
+  return (
+    <>
+      <Hero />
+
+      <AdminQuickPanel />
+
+      <SectionDivider />
+
+      <section id="category" className="container-narrow py-20 scroll-mt-20">
+        <div className="text-center mb-10">
+          <p className="text-gold text-sm tracking-shop uppercase mb-2">Category</p>
+          <h2 className="font-serif text-3xl sm:text-4xl">전문 카테고리</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.name}
+              href={`/products?cat=${c.name}`}
+              className="group relative aspect-square overflow-hidden bg-cream border border-gold/25 hover:border-gold/60 hover:shadow-gold-glow-soft transition-all duration-500"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                <span className="block h-px w-8 bg-gold mb-3 mx-auto" />
+                <h3 className="font-serif text-2xl sm:text-3xl mb-1 text-ink group-hover:text-gold-dark transition">{c.name}</h3>
+                <p className="text-xs text-ink/60">{c.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <PromoBanner type="academy" />
+
+      <BestNewTabs products={all} />
+
+      <SectionDivider />
+
+      <PromoBanner type="event" />
+
+      <ReviewSection />
+
+      <SectionDivider />
+
+      <SnsSection />
+    </>
+  );
+}

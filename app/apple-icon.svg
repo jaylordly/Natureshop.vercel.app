@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="28" fill="#1F1A16"/>
+  <path d="M40,108 Q62,68 90,62 Q118,68 140,108"
+        stroke="#B5894A" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <text x="90" y="150" text-anchor="middle"
+        font-family="Georgia, serif" font-style="italic" font-size="32"
+        fill="#D6B07A">nature</text>
+</svg>

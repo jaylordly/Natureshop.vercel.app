@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="220" viewBox="0 0 600 220">
+  <title>Full Volume</title>
+  <!-- 두툼한 풍성형 — 두께 강조 -->
+  <g transform="translate(60,110)">
+    <path d="M0,22 Q40,-25 105,-32 Q170,-30 200,-10 Q160,8 110,12 Q55,18 0,22 Z"
+          fill="#3D2A22" opacity="0.7"/>
+    <path d="M8,18 Q45,-22 105,-28 Q165,-26 195,-8 Q155,5 105,9 Q55,14 8,18 Z"
+          fill="#2B1D17" opacity="0.85"/>
+    <g stroke="#1F1410" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.7">
+      <path d="M20,5 q12,-7 24,-10"/>
+      <path d="M55,-3 q15,-6 30,-9"/>
+      <path d="M95,-9 q20,-3 40,-2"/>
+      <path d="M140,-6 q15,4 25,9"/>
+    </g>
+  </g>
+  <g transform="translate(540,110) scale(-1,1)">
+    <path d="M0,22 Q40,-25 105,-32 Q170,-30 200,-10 Q160,8 110,12 Q55,18 0,22 Z"
+          fill="#3D2A22" opacity="0.7"/>
+    <path d="M8,18 Q45,-22 105,-28 Q165,-26 195,-8 Q155,5 105,9 Q55,14 8,18 Z"
+          fill="#2B1D17" opacity="0.85"/>
+    <g stroke="#1F1410" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.7">
+      <path d="M20,5 q12,-7 24,-10"/>
+      <path d="M55,-3 q15,-6 30,-9"/>
+      <path d="M95,-9 q20,-3 40,-2"/>
+      <path d="M140,-6 q15,4 25,9"/>
+    </g>
+  </g>
+</svg>
