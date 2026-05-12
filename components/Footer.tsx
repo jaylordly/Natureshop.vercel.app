@@ -5,8 +5,8 @@ import NewsletterForm from './NewsletterForm';
 export default function Footer() {
   return (
     <footer className="border-t border-gold/30 bg-card/60 mt-20">
-      <div className="container-narrow pt-14 text-center mb-12">
-        <div className="h-px bg-gold/30 mx-auto w-32 mb-6" />
+      <div className="container-narrow pt-10 sm:pt-14 text-center mb-10 sm:mb-12">
+        <div className="h-px bg-gold/30 mx-auto w-24 sm:w-32 mb-5 sm:mb-6" />
         <p className="font-serif italic text-gold/80 text-base sm:text-lg mb-2">
           섬세한 도구, 완성된 시술.
         </p>
@@ -14,7 +14,7 @@ export default function Footer() {
           The Nature Academy
         </p>
       </div>
-      <div className="container-narrow pb-10 grid gap-10 md:grid-cols-4">
+      <div className="container-narrow pb-8 sm:pb-10 grid gap-8 sm:gap-10 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <p className="font-serif text-xl mb-3">The Nature Academy</p>
           <p className="text-xs text-ink/60 leading-relaxed">

@@ -29,18 +29,18 @@ export default function AdminQuickPanel() {
   ];
 
   return (
-    <section className="container-narrow py-10">
-      <div className="border border-gold bg-ink text-beige p-6 sm:p-8">
+    <section className="container-narrow py-8 sm:py-10">
+      <div className="border border-gold bg-ink text-beige p-5 sm:p-8">
         <div className="flex items-center gap-2 mb-1">
           <Shield className="w-4 h-4 text-gold" />
           <p className="text-[11px] tracking-cta uppercase text-gold">Admin Quick Access</p>
         </div>
-        <h2 className="font-serif text-2xl sm:text-3xl mb-1">
+        <h2 className="font-serif text-xl sm:text-3xl mb-1">
           안녕하세요, {user.name}님
         </h2>
-        <p className="text-beige/60 text-sm mb-6">관리자 영역으로 빠르게 이동하세요</p>
+        <p className="text-beige/60 text-xs sm:text-sm mb-5 sm:mb-6">관리자 영역으로 빠르게 이동하세요</p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
           {cards.map(({ href, icon: Icon, label, desc }) => (
             <Link
               key={href}

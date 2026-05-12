@@ -51,15 +51,13 @@ export default function NoticeBanner() {
   return (
     <div className={`border-b ${STYLE[notice.type]}`}>
       <div className="container-narrow flex items-center justify-between gap-3 py-2.5 text-xs sm:text-sm">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Icon className="w-4 h-4 shrink-0" />
-          <Link href="/notices" className="min-w-0 hover:underline">
-            <span className="font-medium truncate">{notice.title}</span>
-            <span className="hidden sm:inline opacity-70"> · {notice.content.slice(0, 60)}{notice.content.length > 60 && '...'}</span>
-          </Link>
-        </div>
+        <Link href="/notices" className="flex items-center gap-2 min-w-0 flex-1 hover:underline">
+          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="font-medium truncate">{notice.title}</span>
+          <span className="hidden md:inline opacity-70 truncate"> · {notice.content.slice(0, 60)}{notice.content.length > 60 && '...'}</span>
+        </Link>
         <button onClick={dismiss} aria-label="닫기" className="opacity-60 hover:opacity-100 shrink-0">
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
     </div>

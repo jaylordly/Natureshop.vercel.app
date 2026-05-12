@@ -35,10 +35,10 @@ export default async function HomePage() {
 
       <SectionDivider />
 
-      <section id="category" className="container-narrow py-20 scroll-mt-20">
-        <div className="text-center mb-10">
-          <p className="text-gold text-sm tracking-shop uppercase mb-2">Category</p>
-          <h2 className="font-serif text-3xl sm:text-4xl">전문 카테고리</h2>
+      <section id="category" className="container-narrow py-12 sm:py-20 scroll-mt-20">
+        <div className="text-center mb-8 sm:mb-10">
+          <p className="text-gold text-xs sm:text-sm tracking-shop uppercase mb-2">Category</p>
+          <h2 className="font-serif text-2xl sm:text-4xl">전문 카테고리</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
           {CATEGORIES.map((c) => (
