@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { UserPlus, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { TextField } from '@/components/TextField';
+import { withTimeout, navigateAfterAuth } from '@/lib/auth-helpers';
 
 const KAKAO_ENABLED = process.env.NEXT_PUBLIC_KAKAO_LOGIN_ENABLED === '1';
 
@@ -26,13 +27,22 @@ export default function SignupPage() {
       return;
     }
     setBusy(true);
-    const { error } = await signupWithEmail(email, password, name);
-    setBusy(false);
-    if (error) {
-      setErr(error);
-      return;
+    try {
+      const { error } = await withTimeout(signupWithEmail(email, password, name));
+      if (error) {
+        setErr(error);
+        return;
+      }
+      navigateAfterAuth('/');
+    } catch (e) {
+      if (e instanceof Error && e.message === 'TIMEOUT') {
+        setErr('서버 응답이 느립니다. 잠시 후 다시 시도해 주세요.');
+      } else {
+        setErr(e instanceof Error ? e.message : '가입에 실패했습니다.');
+      }
+    } finally {
+      setBusy(false);
     }
-    router.push('/');
   };
 
   return (

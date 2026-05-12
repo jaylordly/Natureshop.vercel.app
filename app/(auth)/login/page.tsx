@@ -6,6 +6,7 @@ import { LogIn, GraduationCap, Shield, UserCheck, Sparkles, MessageCircle } from
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { TextField } from '@/components/TextField';
+import { withTimeout, navigateAfterAuth } from '@/lib/auth-helpers';
 
 type Tab = 'email' | 'student' | 'admin';
 
@@ -51,61 +52,65 @@ function LoginInner() {
     e.preventDefault();
     setEmailErr('');
     setEmailBusy(true);
-    const { error } = await loginWithEmail(email, password);
-    setEmailBusy(false);
-    if (error) {
-      setEmailErr(error);
-      return;
+    try {
+      const { error } = await withTimeout(loginWithEmail(email, password));
+      if (error) {
+        setEmailErr(error);
+        return;
+      }
+      navigateAfterAuth(redirect);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'TIMEOUT') {
+        setEmailErr('서버 응답이 느립니다. 잠시 후 다시 시도해 주세요.');
+      } else {
+        setEmailErr(e instanceof Error ? e.message : '로그인에 실패했습니다.');
+      }
+    } finally {
+      setEmailBusy(false);
     }
-    router.push(redirect);
   };
 
   const handleStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setStudentErr('');
     setStudentBusy(true);
-    const { error } = await loginWithEmail(studentEmail, studentPassword);
-    if (error) {
+    try {
+      const { error } = await withTimeout(loginWithEmail(studentEmail, studentPassword));
+      if (error) { setStudentErr(error); return; }
+      const { ok, error: upErr } = await withTimeout(upgradeToStudent(studentCode));
+      if (!ok) { setStudentErr(upErr || '수강생 코드 인증에 실패했습니다.'); return; }
+      navigateAfterAuth(redirect);
+    } catch (e) {
+      setStudentErr(e instanceof Error && e.message === 'TIMEOUT' ? '서버 응답이 느립니다. 다시 시도해 주세요.' : '오류가 발생했습니다.');
+    } finally {
       setStudentBusy(false);
-      setStudentErr(error);
-      return;
     }
-    const { ok, error: upErr } = await upgradeToStudent(studentCode);
-    setStudentBusy(false);
-    if (!ok) {
-      setStudentErr(upErr || '수강생 코드 인증에 실패했습니다.');
-      return;
-    }
-    await refreshProfile();
-    router.push(redirect);
   };
 
   const handleAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminErr('');
     setAdminBusy(true);
-    const { error } = await loginWithEmail(adminEmail, adminPw);
-    if (error) {
+    try {
+      const { error } = await withTimeout(loginWithEmail(adminEmail, adminPw));
+      if (error) { setAdminErr(error); return; }
+      const { data: sess } = await withTimeout(supabase.auth.getSession());
+      const uid = sess.session?.user?.id;
+      if (!uid) { setAdminErr('세션을 확인할 수 없습니다.'); return; }
+      const { data: prof } = await withTimeout(
+        (async () => supabase.from('profiles').select('role').eq('id', uid).maybeSingle())().then((q) => q)
+      );
+      if (prof?.role !== 'admin') {
+        await supabase.auth.signOut();
+        setAdminErr('관리자 권한이 없는 계정입니다.');
+        return;
+      }
+      navigateAfterAuth('/admin');
+    } catch (e) {
+      setAdminErr(e instanceof Error && e.message === 'TIMEOUT' ? '서버 응답이 느립니다. 다시 시도해 주세요.' : '오류가 발생했습니다.');
+    } finally {
       setAdminBusy(false);
-      setAdminErr(error);
-      return;
     }
-    // 로그인 직후 role 확인 (세션 반영 전이므로 직접 조회)
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user?.id;
-    if (!uid) {
-      setAdminBusy(false);
-      setAdminErr('세션을 확인할 수 없습니다.');
-      return;
-    }
-    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
-    setAdminBusy(false);
-    if (prof?.role !== 'admin') {
-      await supabase.auth.signOut();
-      setAdminErr('관리자 권한이 없는 계정입니다.');
-      return;
-    }
-    router.push('/admin');
   };
 
   return (

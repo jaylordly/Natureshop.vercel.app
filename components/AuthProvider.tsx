@@ -28,13 +28,18 @@ function pickName(role: Role): string {
 }
 
 async function fetchProfile(userId: string): Promise<{ name: string; role: Role } | null> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('name, role')
-    .eq('id', userId)
-    .maybeSingle();
-  if (!data) return null;
-  return { name: data.name, role: data.role as Role };
+  try {
+    // 8초 안에 못 가져오면 포기 (profile 없어도 인증은 유지됨)
+    const result = await Promise.race([
+      supabase.from('profiles').select('name, role').eq('id', userId).maybeSingle(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+    ]);
+    const data = (result as { data: { name: string; role: string } | null }).data;
+    if (!data) return null;
+    return { name: data.name, role: data.role as Role };
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
