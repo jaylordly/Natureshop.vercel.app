@@ -60,16 +60,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let mounted = true;
 
+    // 세션이 있을 때 즉시 user를 임시 정보로 설정 (이름은 이메일 prefix, role은 user)
+    // 그 후 백그라운드에서 진짜 프로필을 가져와 갱신
+    const applySession = (session: { user: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null) => {
+      if (!session?.user) {
+        setUser(null);
+        return;
+      }
+      // 1) 즉시: 세션에서 알 수 있는 최소 정보로 user 설정 (UI 즉시 반응)
+      const meta = session.user.user_metadata ?? {};
+      const fallbackName =
+        (meta.name as string) ||
+        (meta.nickname as string) ||
+        (meta.full_name as string) ||
+        session.user.email?.split('@')[0] ||
+        '회원';
+      setUser({ id: session.user.id, name: fallbackName, role: 'user' });
+
+      // 2) 백그라운드: 진짜 프로필(role 포함) fetch 후 덮어쓰기
+      void fetchProfile(session.user.id).then((profile) => {
+        if (!mounted || !profile) return;
+        setUser({ id: session.user.id, name: profile.name, role: profile.role });
+      });
+    };
+
     (async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData.session;
       if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        if (mounted && profile) {
-          setUser({ id: session.user.id, name: profile.name, role: profile.role });
-        }
+        applySession(session);
       } else {
-        // Supabase 세션 없으면 데모 localStorage 확인
         try {
           const raw = localStorage.getItem(KEY);
           if (raw && mounted) setUser(JSON.parse(raw));
@@ -78,15 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) setLoading(false);
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        if (profile) {
-          setUser({ id: session.user.id, name: profile.name, role: profile.role });
-        }
-      } else {
-        setUser(null);
-      }
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      applySession(session);
     });
 
     return () => {
