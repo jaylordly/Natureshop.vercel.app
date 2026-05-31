@@ -133,6 +133,13 @@ export interface OrderItemRich {
   priceAtPurchase: number;
 }
 
+export interface VbankInfo {
+  bank?: string;
+  accountNumber?: string;
+  holder?: string;
+  dueDate?: string;
+}
+
 export interface DbOrder {
   id: string;
   userId: string;
@@ -146,6 +153,12 @@ export interface DbOrder {
   items: OrderItemRich[];
   couponCode?: string;
   discountAmount: number;
+  trackingNumber?: string;
+  carrier?: string;
+  shippedAt?: number;
+  deliveredAt?: number;
+  vbank?: VbankInfo;
+  vbankDue?: number;
 }
 
 interface CreateOrderInDbInput {
@@ -160,6 +173,8 @@ interface CreateOrderInDbInput {
   receiptUrl?: string;
   couponCode?: string;
   discount?: number;
+  vbank?: VbankInfo;
+  vbankDue?: string;
 }
 
 export async function createOrderInDb(input: CreateOrderInDbInput): Promise<{ order: DbOrder | null; error: string | null }> {
@@ -186,6 +201,8 @@ export async function createOrderInDb(input: CreateOrderInDbInput): Promise<{ or
     })),
     p_coupon_code: input.couponCode ?? '',
     p_discount: input.discount ?? 0,
+    p_vbank: input.vbank ?? null,
+    p_vbank_due: input.vbankDue ?? null,
   });
 
   if (error) {
@@ -235,6 +252,12 @@ type RawOrderRow = {
   coupon_code: string | null;
   discount_amount: number | null;
   created_at: string;
+  tracking_number: string | null;
+  carrier: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  vbank: VbankInfo | null;
+  vbank_due: string | null;
   order_items: {
     product_id: string;
     quantity: number;
@@ -270,6 +293,12 @@ function toDbOrder(row: RawOrderRow): DbOrder {
     couponCode: row.coupon_code ?? undefined,
     discountAmount: row.discount_amount ?? 0,
     createdAt: new Date(row.created_at).getTime(),
+    trackingNumber: row.tracking_number ?? undefined,
+    carrier: row.carrier ?? undefined,
+    shippedAt: row.shipped_at ? new Date(row.shipped_at).getTime() : undefined,
+    deliveredAt: row.delivered_at ? new Date(row.delivered_at).getTime() : undefined,
+    vbank: row.vbank ?? undefined,
+    vbankDue: row.vbank_due ? new Date(row.vbank_due).getTime() : undefined,
     items: row.order_items.map((i) => ({
       productId: i.product_id,
       productName: i.products?.name ?? i.product_id,

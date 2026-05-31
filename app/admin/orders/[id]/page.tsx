@@ -2,19 +2,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Save, Receipt, ExternalLink, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, Receipt, ExternalLink, RotateCcw, Truck } from 'lucide-react';
 import { getOrderFromDb, updateOrderStatusInDb, type DbOrder } from '@/lib/orders';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/Toast';
 import type { OrderStatus } from '@/lib/status-style';
 import { STATUS_LABEL, STATUS_BADGE } from '@/lib/status-style';
+import { CARRIERS } from '@/lib/shipping';
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: 'pending', label: '결제 대기' },
+  { value: 'pending', label: '입금 대기' },
   { value: 'paid', label: '결제 완료' },
   { value: 'failed', label: '결제 실패' },
   { value: 'demo', label: '데모' },
   { value: 'refunded', label: '환불됨' },
+];
+
+const FULFILLMENT_STEPS: { value: 'preparing' | 'shipped' | 'delivered'; label: string }[] = [
+  { value: 'preparing', label: '배송 준비' },
+  { value: 'shipped', label: '발송' },
+  { value: 'delivered', label: '배송 완료' },
 ];
 
 function fmt(ts: number) {
@@ -30,14 +37,50 @@ export default function AdminOrderDetailPage() {
   const [busy, setBusy] = useState(false);
   const [refunding, setRefunding] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [carrier, setCarrier] = useState('');
+  const [tracking, setTracking] = useState('');
+  const [fulfilling, setFulfilling] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const o = await getOrderFromDb(id);
       setOrder(o);
-      if (o) setNewStatus(o.status);
+      if (o) {
+        setNewStatus(o.status);
+        setCarrier(o.carrier ?? '');
+        setTracking(o.trackingNumber ?? '');
+      }
     })();
   }, [id]);
+
+  const handleFulfillment = async (status: 'preparing' | 'shipped' | 'delivered') => {
+    if (!order) return;
+    if (status === 'shipped' && (!carrier || !tracking.trim())) {
+      show('발송 처리 시 택배사와 송장번호를 입력해 주세요.', 'error');
+      return;
+    }
+    setFulfilling(status);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setFulfilling(null);
+      show('로그인 세션이 필요합니다.', 'error');
+      return;
+    }
+    const res = await fetch('/api/admin/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ orderId: order.id, status, carrier: carrier || undefined, trackingNumber: tracking.trim() || undefined }),
+    });
+    const data = await res.json();
+    setFulfilling(null);
+    if (!data.ok) {
+      show(`처리 실패: ${data.error}`, 'error');
+      return;
+    }
+    setOrder({ ...order, status, carrier: carrier || undefined, trackingNumber: tracking.trim() || undefined });
+    setNewStatus(status);
+    show(`'${STATUS_LABEL[status]}'(으)로 변경했습니다. 고객 이메일을 발송했습니다.`, 'success');
+  };
 
   const handleSave = async () => {
     if (!order || newStatus === order.status) return;
@@ -156,6 +199,54 @@ export default function AdminOrderDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 배송 처리 — 결제완료/배송단계에서만 노출 */}
+      {['paid', 'preparing', 'shipped', 'delivered'].includes(order.status) && (
+        <div className="bg-card border border-gold/30 p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Truck className="w-4 h-4 text-gold-dark" />
+            <h2 className="font-serif text-lg">배송 처리</h2>
+          </div>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex-1 min-w-[160px]">
+              <label className="block text-[11px] tracking-shop uppercase text-ink/50 mb-1">택배사</label>
+              <select
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                className="w-full bg-beige border border-gold/30 px-3 py-2 text-sm focus:outline-none focus:border-gold"
+              >
+                <option value="">선택</option>
+                {CARRIERS.map((c) => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[160px]">
+              <label className="block text-[11px] tracking-shop uppercase text-ink/50 mb-1">송장번호</label>
+              <input
+                value={tracking}
+                onChange={(e) => setTracking(e.target.value)}
+                placeholder="숫자만 입력"
+                className="w-full bg-beige border border-gold/30 px-3 py-2 text-sm font-mono focus:outline-none focus:border-gold"
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {FULFILLMENT_STEPS.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => handleFulfillment(s.value)}
+                disabled={fulfilling !== null || order.status === s.value}
+                className="border border-gold/40 px-4 py-2 text-xs tracking-shop uppercase hover:bg-ink hover:text-beige transition disabled:opacity-40"
+              >
+                {fulfilling === s.value ? '처리 중…' : s.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-ink/50 mt-3">상태 변경 시 고객에게 이메일이 발송됩니다(이메일 미설정 시 자동 생략).</p>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div className="bg-card border border-gold/30 p-6">

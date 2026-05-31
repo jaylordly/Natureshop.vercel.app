@@ -1,4 +1,4 @@
-import { Check, Clock, XCircle, Sparkles } from 'lucide-react';
+import { Check, Clock, XCircle, Sparkles, Package, Truck, Home, RotateCcw } from 'lucide-react';
 import type { OrderStatus } from '@/lib/status-style';
 
 interface Step {
@@ -7,31 +7,37 @@ interface Step {
   Icon: React.ElementType;
 }
 
+// 배송 라이프사이클 (결제완료 이후)
 const STEPS: Step[] = [
-  { key: 'pending', label: '결제 대기', Icon: Clock },
   { key: 'paid', label: '결제 완료', Icon: Check },
+  { key: 'preparing', label: '배송 준비', Icon: Package },
+  { key: 'shipped', label: '배송 중', Icon: Truck },
+  { key: 'delivered', label: '배송 완료', Icon: Home },
 ];
 
-const FAILED_STEP: Step = { key: 'failed', label: '결제 실패', Icon: XCircle };
-const DEMO_STEP: Step = { key: 'demo', label: '데모 주문', Icon: Sparkles };
+const SINGLE: Partial<Record<OrderStatus, { step: Step; accent: string }>> = {
+  pending: { step: { key: 'pending', label: '입금 대기', Icon: Clock }, accent: 'bg-espresso text-beige' },
+  failed: { step: { key: 'failed', label: '결제 실패', Icon: XCircle }, accent: 'bg-wine-dark text-beige' },
+  demo: { step: { key: 'demo', label: '데모 주문', Icon: Sparkles }, accent: 'bg-ink text-beige' },
+  refunding: { step: { key: 'refunding', label: '환불 처리 중', Icon: RotateCcw }, accent: 'bg-espresso text-beige' },
+  refunded: { step: { key: 'refunded', label: '환불 완료', Icon: RotateCcw }, accent: 'bg-ink/60 text-beige' },
+};
 
 export default function OrderStatusTimeline({ status }: { status: OrderStatus }) {
-  if (status === 'failed') {
-    return <SingleStep step={FAILED_STEP} active accent="bg-wine-dark text-beige" />;
-  }
-  if (status === 'demo') {
-    return <SingleStep step={DEMO_STEP} active accent="bg-ink text-beige" />;
+  const single = SINGLE[status];
+  if (single) {
+    return <SingleStep step={single.step} active accent={single.accent} />;
   }
 
   const currentIdx = STEPS.findIndex((s) => s.key === status);
 
   return (
-    <ol className="flex items-center justify-between gap-2 sm:gap-4">
+    <ol className="flex items-center justify-between gap-1 sm:gap-3">
       {STEPS.map((s, idx) => {
         const done = idx <= currentIdx;
         const active = idx === currentIdx;
         return (
-          <li key={s.key} className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
+          <li key={s.key} className="flex-1 flex items-center gap-1 sm:gap-3 min-w-0">
             <div className="flex flex-col items-center text-center min-w-0">
               <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 ${
                 done

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/components/CartProvider';
 import { useAuth } from '@/components/AuthProvider';
-import { getProductById } from '@/lib/products';
+import { useProductMap } from '@/components/useProductMap';
 import { createOrderInDb, newOrderId, setPendingOrder } from '@/lib/orders';
 import { listAddresses, type Address } from '@/lib/addresses';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,7 @@ type TossPaymentsApi = Awaited<ReturnType<typeof import('@tosspayments/tosspayme
 export default function CheckoutPage() {
   const { items, clear } = useCart();
   const { user } = useAuth();
+  const { map: productMap, loading: productsLoading } = useProductMap();
   const { show } = useToast();
   const router = useRouter();
 
@@ -69,7 +70,7 @@ export default function CheckoutPage() {
   const widgetsRef = useRef<WidgetsHandle | null>(null);
 
   const cartProducts = items
-    .map((i) => ({ item: i, product: getProductById(i.productId)! }))
+    .map((i) => ({ item: i, product: productMap.get(i.productId)! }))
     .filter((x) => x.product);
   const subtotal = cartProducts.reduce((s, { item, product }) => s + item.quantity * product.price, 0);
   const shipping = 0;
@@ -215,6 +216,14 @@ export default function CheckoutPage() {
         <Link href="/products" className="text-gold hover:underline">
           쇼핑하러 가기
         </Link>
+      </section>
+    );
+  }
+
+  if (productsLoading) {
+    return (
+      <section className="container-narrow py-24 text-center">
+        <p className="text-sm text-ink/50 tracking-wide">결제 정보를 불러오는 중…</p>
       </section>
     );
   }
