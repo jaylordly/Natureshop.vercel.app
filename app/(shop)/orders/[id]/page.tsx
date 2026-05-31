@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { getOrderFromDb, type DbOrder } from '@/lib/orders';
-import { Check, Clock, AlertTriangle, Receipt, ExternalLink } from 'lucide-react';
+import { Check, Clock, AlertTriangle, Receipt, ExternalLink, Package, Truck, Home } from 'lucide-react';
+import { trackingUrl, carrierName } from '@/lib/shipping';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { STATUS_LABEL, STATUS_BADGE, type OrderStatus } from '@/lib/status-style';
 import { Eyebrow } from '@/components/Eyebrow';
 import OrderStatusTimeline from '@/components/OrderStatusTimeline';
+import ReturnRequestSection from '@/components/ReturnRequestSection';
 
 interface StatusMeta {
   title: string;
@@ -39,6 +41,30 @@ const STATUS_META: Record<OrderStatus, StatusMeta> = {
     Icon: Check,
     iconClass: 'text-gold',
     iconBg: 'bg-gold/15',
+  },
+  preparing: {
+    title: '배송을 준비하고 있습니다',
+    Icon: Package,
+    iconClass: 'text-gold',
+    iconBg: 'bg-gold/15',
+  },
+  shipped: {
+    title: '상품이 발송되었습니다',
+    Icon: Truck,
+    iconClass: 'text-gold',
+    iconBg: 'bg-gold/15',
+  },
+  delivered: {
+    title: '배송이 완료되었습니다',
+    Icon: Home,
+    iconClass: 'text-gold',
+    iconBg: 'bg-gold/15',
+  },
+  refunding: {
+    title: '환불 처리 중입니다',
+    Icon: Clock,
+    iconClass: 'text-espresso',
+    iconBg: 'bg-cream',
   },
   refunded: {
     title: '환불 처리되었습니다',
@@ -105,6 +131,34 @@ export default function OrderConfirmPage() {
       <div className="bg-card border border-gold/30 p-6 mb-6">
         <OrderStatusTimeline status={order.status} />
       </div>
+
+      {/* 가상계좌 입금 안내 */}
+      {order.status === 'pending' && order.vbank && (
+        <div className="bg-beige border border-gold/40 p-6 sm:p-8 mb-6">
+          <h2 className="font-serif text-lg mb-3 text-gold-dark">입금 안내</h2>
+          <p className="text-sm text-ink/70 mb-4">아래 계좌로 입금하시면 자동으로 확인되어 배송이 시작됩니다.</p>
+          <dl className="text-sm space-y-2">
+            <div className="flex">
+              <dt className="w-24 text-ink/60">입금 은행</dt>
+              <dd className="font-medium">{order.vbank.bank ?? '—'}</dd>
+            </div>
+            <div className="flex">
+              <dt className="w-24 text-ink/60">계좌번호</dt>
+              <dd className="font-mono font-medium">{order.vbank.accountNumber ?? '—'}</dd>
+            </div>
+            <div className="flex">
+              <dt className="w-24 text-ink/60">입금 금액</dt>
+              <dd className="font-medium">₩{order.total.toLocaleString()}</dd>
+            </div>
+            {order.vbankDue && (
+              <div className="flex">
+                <dt className="w-24 text-ink/60">입금 기한</dt>
+                <dd className="text-wine-dark">{formatDate(order.vbankDue)}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
 
       {/* 결제 정보 */}
       <div className="bg-card border border-gold/30 p-6 sm:p-8 mb-6">
@@ -189,8 +243,41 @@ export default function OrderConfirmPage() {
             <dt className="w-24 text-ink/60">배송지</dt>
             <dd>{order.shipping.address}</dd>
           </div>
+          {order.carrier && (
+            <div className="flex">
+              <dt className="w-24 text-ink/60">택배사</dt>
+              <dd>{carrierName(order.carrier)}</dd>
+            </div>
+          )}
+          {order.trackingNumber && (
+            <div className="flex">
+              <dt className="w-24 text-ink/60">송장번호</dt>
+              <dd className="font-mono">{order.trackingNumber}</dd>
+            </div>
+          )}
+          {order.shippedAt && (
+            <div className="flex">
+              <dt className="w-24 text-ink/60">발송 일시</dt>
+              <dd>{formatDate(order.shippedAt)}</dd>
+            </div>
+          )}
         </dl>
+        {trackingUrl(order.carrier, order.trackingNumber) && (
+          <a
+            href={trackingUrl(order.carrier, order.trackingNumber)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center gap-2 border border-gold/40 px-4 py-2.5 text-xs tracking-shop uppercase hover:bg-ink hover:text-beige transition"
+          >
+            <Truck className="w-3.5 h-3.5" />
+            배송 조회
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
       </div>
+
+      {/* 반품/교환 요청 */}
+      <ReturnRequestSection orderId={order.id} status={order.status} />
 
       <div className="text-center">
         <Link

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronRight, Download } from 'lucide-react';
 import { listOrdersFromDb, type DbOrder } from '@/lib/orders';
 import { STATUS_LABEL, STATUS_BADGE } from '@/lib/status-style';
+import { carrierName } from '@/lib/shipping';
 import { TableRowSkeleton } from '@/components/Skeleton';
 
 function fmt(ts: number) {
@@ -37,7 +38,7 @@ export default function AdminOrdersPage() {
   const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
 
   const exportCsv = () => {
-    const header = ['주문번호', '상태', '받는사람', '연락처', '배송지', '결제수단', '결제금액', '주문일시', '상품'];
+    const header = ['주문번호', '상태', '받는사람', '연락처', '배송지', '결제수단', '결제금액', '택배사', '송장번호', '주문일시', '상품'];
     const rows = filtered.map((o) => [
       o.id,
       STATUS_LABEL[o.status],
@@ -46,6 +47,8 @@ export default function AdminOrdersPage() {
       o.shipping.address,
       o.paymentMethod ?? '',
       o.total,
+      carrierName(o.carrier),
+      o.trackingNumber ?? '',
       new Date(o.createdAt).toISOString(),
       o.items.map((i) => `${i.productName} x${i.quantity}`).join('; '),
     ]);

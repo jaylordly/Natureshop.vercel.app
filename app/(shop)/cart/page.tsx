@@ -1,7 +1,8 @@
 'use client';
 import { useCart } from '@/components/CartProvider';
 import { useAuth } from '@/components/AuthProvider';
-import { getProductById } from '@/lib/products';
+import { useProductMap } from '@/components/useProductMap';
+import type { Product } from '@/lib/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -11,11 +12,12 @@ import { Eyebrow } from '@/components/Eyebrow';
 export default function CartPage() {
   const { items, update, remove } = useCart();
   const { user } = useAuth();
+  const { map: productMap, loading: productsLoading } = useProductMap();
   const router = useRouter();
 
   const cartProducts = items
-    .map((i) => ({ item: i, product: getProductById(i.productId) }))
-    .filter((x): x is { item: { productId: string; quantity: number }; product: NonNullable<ReturnType<typeof getProductById>> } => !!x.product);
+    .map((i) => ({ item: i, product: productMap.get(i.productId) }))
+    .filter((x): x is { item: { productId: string; quantity: number }; product: Product } => !!x.product);
 
   const subtotal = cartProducts.reduce((s, { item, product }) => s + item.quantity * product.price, 0);
   const shipping = 0;
@@ -40,6 +42,14 @@ export default function CartPage() {
         >
           쇼핑 계속하기
         </Link>
+      </section>
+    );
+  }
+
+  if (productsLoading) {
+    return (
+      <section className="container-narrow py-24 text-center">
+        <p className="text-sm text-ink/50 tracking-wide">장바구니를 불러오는 중…</p>
       </section>
     );
   }

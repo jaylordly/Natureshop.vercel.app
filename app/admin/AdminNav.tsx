@@ -6,6 +6,7 @@ import { Home } from 'lucide-react';
 const ITEMS = [
   { href: '/admin', label: '대시보드', short: 'Dash' },
   { href: '/admin/orders', label: '주문', short: 'Ord' },
+  { href: '/admin/returns', label: '반품', short: 'Ret' },
   { href: '/admin/products', label: '상품', short: 'Prd' },
   { href: '/admin/customers', label: '회원', short: 'Cus' },
   { href: '/admin/coupons', label: '쿠폰', short: 'Cpn' },
